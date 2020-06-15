@@ -1,4 +1,5 @@
-﻿
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace FlightMobileApp.Models
 		public Command(double aileron, double throtle, double rudder, double elevator)
 		{
 			Aileron = aileron;
-			Throtle = throtle;
+			Throttle = throtle;
 			Rudder = rudder;
 			Elevator = elevator;
 		}
