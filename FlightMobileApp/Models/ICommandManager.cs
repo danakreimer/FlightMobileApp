@@ -4,5 +4,6 @@ public class ICommandManager
 {
 	public ICommandManager()
 	{
+
 	}
 }
