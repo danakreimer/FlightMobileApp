@@ -3,7 +3,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29905.134
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightMobileApp", "FlightMobileApp\FlightMobileApp.csproj", "{91BC4E97-0AA4-4251-8CC7-00D7B45746AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightMobileApp", "FlightMobileApp\FlightMobileApp.csproj", "{91BC4E97-0AA4-4251-8CC7-00D7B45746AB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Controllers", "Controllers", "{365E23A2-5759-4548-9342-3162D67EB5D8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Models", "Models", "{5EDF4C92-7FEA-426D-9680-EA3CD0611D55}"
+	ProjectSection(SolutionItems) = preProject
+		Command.cs = Command.cs
+		CommandManager.cs = CommandManager.cs
+		ICommandManager.cs = ICommandManager.cs
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
