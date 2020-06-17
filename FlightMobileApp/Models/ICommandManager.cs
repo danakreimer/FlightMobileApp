@@ -1,8 +1,16 @@
-﻿using System;
+﻿using FlightMobileApp.Models;
+using System.Drawing.Imaging;
 
-public class ICommandManager
+using System.Drawing;
+
+using System;
+
+namespace FlightMobileApp.Models
 {
-	public ICommandManager()
-	{
-	}
+    public interface ICommandManager
+    {
+        public void SendCommand(Command command);
+        public void GetScreenshot();
+    }
 }
+
