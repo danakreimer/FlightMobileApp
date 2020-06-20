@@ -1,21 +1,13 @@
 package com.example.flightmobileapp.database
 
+// A Repository manages queries and allows to use multiple backend
 class ServerUrlRepository(private val dao: ServerUrlDAO) {
-    // Five most recently used urls from data table
+    // Five most recently used urls from data table.
+    // Observed LiveData will notify the observer when the data has changed
     val urls = dao.getMostRecentlyUsedUrls()
 
-    // Insert a ServerUrl object to data table
-    suspend fun insert(url: ServerUrl) {
-         dao.insertUrl(url)
+    // Insert a ServerUrl object to data table and return its row ID
+    suspend fun insert(serverUrl: ServerUrl): Long {
+        return dao.insertUrl(serverUrl)
      }
-
-    // Update a ServerUrl object in data table
-    suspend fun update(url: ServerUrl) {
-        dao.updateUrl(url)
-    }
-
-    // Delete a ServerUrl object from data table
-    suspend fun delete(url: ServerUrl) {
-        dao.deleteUrl(url)
-    }
 }
