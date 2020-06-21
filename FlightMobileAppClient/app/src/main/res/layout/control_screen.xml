@@ -19,7 +19,7 @@
             android:id="@+id/imageView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:contentDescription="FlightGear Screenshot"
+            android:contentDescription="@string/flightgear_screenshot"
             tools:srcCompat="@tools:sample/backgrounds/scenic" />
     </LinearLayout>
 
@@ -71,10 +71,10 @@
                 android:foregroundGravity="fill_horizontal|top|left|bottom|center_vertical|center|fill_vertical|clip_vertical|right|center_horizontal|fill"
                 android:layoutDirection="inherit"
                 android:visibility="visible"
-                app:JV_backgroundColor="#009688"
-                app:JV_borderColor="#00796B"
+                app:JV_backgroundColor="#0E7C71"
+                app:JV_borderColor="#040404"
                 app:JV_borderWidth="8dp"
-                app:JV_buttonColor="#FF6E40" />
+                app:JV_buttonColor="#88E3DA" />
 
             <SeekBar
                 android:id="@+id/seekBar2"
