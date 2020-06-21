@@ -27,7 +27,7 @@ namespace FlightMobileApp
             services.AddControllers();
             var telnet = new TelnetClient();
             var commandManager = new CommandManager(telnet, Configuration);
-            services.AddSingleton(commandManager);
+            services.AddSingleton<ICommandManager>(commandManager);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
