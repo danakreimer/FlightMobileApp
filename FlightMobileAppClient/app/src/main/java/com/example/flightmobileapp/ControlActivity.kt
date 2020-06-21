@@ -1,9 +1,16 @@
 package com.example.flightmobileapp
 
 import android.os.Bundle
+import android.content.Intent
+import android.graphics.BitmapFactory
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.GsonBuilder
 import com.example.flightmobileapp.JoystickView.OnMoveListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import okhttp3.MediaType
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -22,21 +29,53 @@ class ControlActivity : AppCompatActivity() {
     private var lastRudder: Double = 0.0
     private var lastElevator: Double = 0.0
 
+    private var isImageRequested = false;
+    private var url: String? = null
+    private var image: ImageView? = null
+    private val requestScope = CoroutineScope(IO);
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.control_screen)
+        url = intent.getStringExtra("Url")
+        image = findViewById<ImageView>(R.id.imageView)
         val joystick = findViewById<JoystickView>(R.id.joystickView)
         joystick.setOnMoveListener (object : OnMoveListener {
             override fun onMove(angle: Int, strength: Int) {
-                TODO("Not yet implemented")
+
             }
         })
             // do whatever you want
     }
 
+    //visible
+    override fun onStart() {
+        super.onStart()
+        screenShotThread()
+
+    }
+
+    // no longer visible
+    override fun onStop() {
+        super.onStop()
+        isImageRequested = false
+    }
+
+    // returns to this activity
+    override fun onResume() {
+        super.onResume()
+        screenShotThread()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        isImageRequested = false
+    }
+
+
+
+
     fun sendCommand() {
-        var url : String = "http://10.0.2.2:SERVER_PORT"
         val jsonToSend: String = "{\"aileron\": $currAilaroen,\n \"rudder\": $currRudder, \n " +
                 "\"elevator\": $currElevator, \n \"throttle\": $currThrottle\n}"
 
@@ -48,7 +87,7 @@ class ControlActivity : AppCompatActivity() {
         val retrofit =
             Retrofit
                 .Builder()
-                .baseUrl(url.toString())
+                .baseUrl(this.url.toString())
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build()
 
@@ -64,19 +103,35 @@ class ControlActivity : AppCompatActivity() {
         })
     }
 
+    fun screenShotThread() {
+        isImageRequested = true;
+        requestScope.launch {
+            while(isImageRequested){
+                getScreenShot()
+                delay(250)
+            }
+        }
+    }
+
     fun getScreenShot() {
         val gson = GsonBuilder()
             .setLenient()
             .create()
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:SERVER_PORT/")
+            .baseUrl(this.url.toString())
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
         val api = retrofit.create(Api::class.java)
-
         val body = api.getImg().enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                TODO("Not yet implemented")
+                val responseBytes = response.body()?.byteStream()
+                if(responseBytes == null){
+
+                }
+                val imageBm = BitmapFactory.decodeStream(responseBytes)
+                runOnUiThread {
+                    image?.setImageBitmap(imageBm)
+                }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
@@ -84,5 +139,4 @@ class ControlActivity : AppCompatActivity() {
             }
         })
     }
-
 }
