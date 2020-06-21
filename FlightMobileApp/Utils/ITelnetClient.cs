@@ -8,11 +8,10 @@ using System.Net;
 
 namespace FlightMobileApp.Utils
 {
-    interface ITelnetClient : INotifyPropertyChanged
+    // TelnetClient interface.
+    public interface ITelnetClient
     {
-        string ErrorMessage { get; set; }
-        bool IsConnected { get; set; }
-        void Connect(IPAddress ip, int port, Action onConnected);
+        void Connect(string ip, int port);
         void Write(string command);
         string Read();
         void Disconnect();

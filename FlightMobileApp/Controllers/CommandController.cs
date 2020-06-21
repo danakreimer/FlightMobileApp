@@ -1,4 +1,5 @@
 ﻿using FlightMobileApp.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -20,17 +21,23 @@ namespace FlightMobileApp.Controllers
 
         // POST: api/command
         [HttpPost(Name = "SendCommandToSimulator")]
-        public void SendCommandToSimulator([FromBody] Command command)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> SendCommandToSimulator(Command command)
         {
-            try
+            Task<Result> result;
+            result = commandManager.SendCommand(command);
+            result.Wait();
+            if(result.Result == Result.NotOk)
             {
-                commandManager.SendCommand(command);
-                // TODO: return success status///////////////////////////////////////////////////
+                return await Task.FromResult(BadRequest());
+                
             }
-            catch (Exception)
+            else
             {
-                // TODO: return failier status./////////////////////////////////////////////////
+                return await Task.FromResult(Ok());
             }
+            
         }
     }
 }

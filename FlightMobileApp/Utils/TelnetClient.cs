@@ -10,122 +10,56 @@ using System.Threading;
 
 namespace FlightMobileApp.Utils
 {
+    // MyTelnetClient Class.
     public class TelnetClient : ITelnetClient
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        private TcpClient client;
+        private NetworkStream stream;
 
-        private Socket socket;
+        // Constructor.
+        public TelnetClient() { }
 
-        private readonly int timeoutTime = 10000000;
-
-        // Data buffer for incoming data.  
-        private byte[] bytes = new byte[1024];
-
-        private string errorMessage = String.Empty;
-        public string ErrorMessage
+        // Connect to server.
+        public void Connect(string ip, int port)
         {
-            get
-            {
-                return this.errorMessage;
-            }
-
-            set
-            {
-                this.errorMessage = value;
-                NotifyPropertyChanged("ErrorMessage");
-            }
+            // Create a TcpClient.
+            this.client = new TcpClient(ip, port);
+            // Get a client stream for reading and writing.
+            this.stream = client.GetStream();
         }
 
-        private bool isConnected = false;
-        public bool IsConnected
-        {
-            get
-            {
-                return this.isConnected;
-            }
-
-            set
-            {
-                this.isConnected = value;
-                NotifyPropertyChanged("IsConnected");
-            }
-        }
-
-        public void Connect(IPAddress iPAddress, int port, Action onConnected)
-        {
-            new Thread(() =>
-            {
-                // Establish the remote endpoint for the socket
-                IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-
-                // Convert the port
-                IPEndPoint remoteEP = new IPEndPoint(iPAddress, port);
-
-                // Create a socket
-                Socket socket = new Socket(iPAddress.AddressFamily,
-                    SocketType.Stream, ProtocolType.Tcp);
-
-                // Try to connect the socket to the remote endpoint
-                try
-                {
-                    socket.Connect(remoteEP);
-                    IsConnected = true;
-                    ErrorMessage = String.Empty;
-                    this.socket = socket;
-                    onConnected();
-                }
-                catch (SocketException)
-                {
-                    IsConnected = false;
-                    ErrorMessage = $"Failed connecting to socket - {iPAddress}:{port}";
-                }
-            }).Start();
-        }
-
-        public void Disconnect()
-        {
-            // Release the socket if it's still connected
-            if (this.socket.Connected)
-            {
-                this.socket.Shutdown(SocketShutdown.Both);
-                this.socket.Close();
-            }
-
-            IsConnected = false;
-        }
-
-        public string Read()
-        {
-            bool canRead = this.socket.Poll(timeoutTime, SelectMode.SelectRead);
-            if (!canRead)
-            {
-                throw new SocketTimeoutException();
-            }
-
-            int bytesRec = this.socket.Receive(this.bytes);
-
-            return Encoding.ASCII.GetString(bytes, 0, bytesRec);
-        }
-
+        // Write message to server.
         public void Write(string command)
         {
-            bool canWrite = this.socket.Poll(timeoutTime, SelectMode.SelectWrite);
-            if (!canWrite)
-            {
-                throw new SocketTimeoutException();
-            }
-
-            // Encode the data string into a byte array.  
-            byte[] msg = Encoding.ASCII.GetBytes(command);
-
-            // Send the data through the socket.  
-            this.socket.Send(msg);
+            // Translate the passed command into ASCII and store it as a Byte array.
+            byte[] data = System.Text.Encoding.ASCII.GetBytes(command);
+            // Send the command to the connected TcpServer.
+            stream.Write(data, 0, data.Length);
+            // Write the command sent to the console.
+            Console.WriteLine("Sent: {0}", command);
         }
 
-        public void NotifyPropertyChanged(string propName)
+        // Receive server response.
+        public string Read()
         {
-            if (this.PropertyChanged != null)
-                this.PropertyChanged(this, new PropertyChangedEventArgs(propName));
+            // Buffer to store the response bytes.
+            byte[] data = new byte[256];
+            // String to store the response ASCII representation.
+            string responseData;
+            // Read the first batch of the TcpServer response bytes.
+            int bytes = stream.Read(data, 0, data.Length);
+            responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+            // Write the response received to the console.
+            Console.WriteLine("Received: {0}", responseData);
+            return responseData;
+        }
+
+        // Disconnect from server.
+        public void Disconnect()
+        {
+            // Close everything.
+            stream.Close();
+            client.Close();
         }
     }
 }
