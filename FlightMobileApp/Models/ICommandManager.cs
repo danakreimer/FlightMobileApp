@@ -4,13 +4,14 @@ using System.Drawing.Imaging;
 using System.Drawing;
 
 using System;
+using System.Threading.Tasks;
 
 namespace FlightMobileApp.Models
 {
     public interface ICommandManager
     {
-        public void SendCommand(Command command);
-        public void GetScreenshot();
+        public Task<Result> SendCommand(Command command);
+        public System.IO.Stream GetScreenshot();
     }
 }
 

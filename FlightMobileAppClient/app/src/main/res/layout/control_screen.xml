@@ -62,7 +62,7 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <io.github.controlwear.virtual.joystick.android.JoystickView
+            <com.example.flightmobileapp.JoystickView
                 android:id="@+id/joystickView"
                 android:layout_width="278dp"
                 android:layout_height="266dp"

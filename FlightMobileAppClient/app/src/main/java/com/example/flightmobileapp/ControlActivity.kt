@@ -3,7 +3,7 @@ package com.example.flightmobileapp
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.GsonBuilder
-import io.github.controlwear.virtual.joystick.android.JoystickView
+import com.example.flightmobileapp.JoystickView.OnMoveListener
 import okhttp3.MediaType
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -27,9 +27,12 @@ class ControlActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.control_screen)
         val joystick = findViewById<JoystickView>(R.id.joystickView)
-        joystick.setOnMoveListener { angle, strength ->
+        joystick.setOnMoveListener (object : OnMoveListener {
+            override fun onMove(angle: Int, strength: Int) {
+                TODO("Not yet implemented")
+            }
+        })
             // do whatever you want
-        }
     }
 
     fun sendCommand() {
