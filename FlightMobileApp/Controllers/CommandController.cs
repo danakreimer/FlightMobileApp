@@ -28,7 +28,7 @@ namespace FlightMobileApp.Controllers
             Task<Result> result;
             result = commandManager.SendCommand(command);
             result.Wait();
-            if(result.Result == Result.NotOk)
+            if (result.Result == Result.NotOk)
             {
                 return await Task.FromResult(BadRequest());
                 
@@ -36,8 +36,7 @@ namespace FlightMobileApp.Controllers
             else
             {
                 return await Task.FromResult(Ok());
-            }
-            
+            }        
         }
     }
 }

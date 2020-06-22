@@ -18,6 +18,7 @@ namespace FlightMobileApp.Models
 		private int portSocket;
 		private string portHttp;
 		private bool parsePort;
+
 		public CommandManager(ITelnetClient telnetClient, IConfiguration configur)
 		{
 			queue = new BlockingCollection<AsyncCommand>();
@@ -25,9 +26,20 @@ namespace FlightMobileApp.Models
 			this.portHttp = configur.GetValue<string>("Connect:PortHttp");
 			parsePort = Int32.TryParse(configur.GetValue<string>("Connect:PortSocket"), out portSocket);
 			this.ip = configur.GetValue<string>("Connect:ip");
+			initialConnectAndRequest();
 			Task.Factory.StartNew(SendInTread);
-
 		}
+
+		public void initialConnectAndRequest()
+		{
+			if (parsePort)
+			{
+				this.telnetClient.Connect(ip, portSocket);
+			}
+			string initRequest = "data\n";
+			telnetClient.Write(initRequest);
+		}
+
 		public Task<Result> SendCommand(Command command)
 		{
 			var asyncCommand = new AsyncCommand(command);
@@ -62,32 +74,28 @@ namespace FlightMobileApp.Models
 				}
 				asyncCommand.Completion.SetResult(result);
 			}
-			
-
 		}
+
 		public System.IO.Stream GetScreenshot()
 		{
 			string url = "http://" + ip + ":" + portHttp + "/screenshot";
-
 			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 			HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 			return response.GetResponseStream();
 		}
+
 		public bool SetAndCheck(string path, double val)
 		{
-			if (parsePort)
-			{
-				this.telnetClient.Connect(ip, portSocket);
-			}
-			string setRequest = "set " + path + " " + val + " \n";
-			string getRequest = "get " + path + " \n";
+			string setRequest = "set " + path + " " + val + "\n";
+			string getRequest = "get " + path + "\n";
 			telnetClient.Write(setRequest);
 			telnetClient.Write(getRequest);
 			double returnValue;
+
 			bool response = double.TryParse(telnetClient.Read().Replace("\n", ""), out returnValue);
 			if (response)
 			{
-				if(returnValue != val)
+				if (returnValue != val)
 				{
 					return false;
 				}

@@ -26,7 +26,6 @@ namespace FlightMobileApp.Utils
             this.client = new TcpClient(ip, port);
             // Get a client stream for reading and writing.
             this.stream = client.GetStream();
-            Write("date\n");
         }
 
         // Write message to server.
