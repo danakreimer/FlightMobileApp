@@ -3,7 +3,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:5403",
+      "applicationUrl": "http://localhost:52634",
       "sslPort": 44348
     }
   },
@@ -18,7 +18,7 @@
     "FlightMobileApp": {
       "commandName": "Project",
       "launchBrowser": true,
-      "applicationUrl": "http://localhost:5403",
+      "applicationUrl": "http://localhost:52634",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
