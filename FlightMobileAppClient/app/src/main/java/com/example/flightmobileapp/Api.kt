@@ -10,6 +10,6 @@ import retrofit2.http.POST
 interface Api {
     @GET("/screenshot")
     fun getImg(): Call<ResponseBody>
-    @POST("/api/command")
+    @POST("/command")
     fun postCommand(@Body requestBody: RequestBody): Call<ResponseBody>
 }

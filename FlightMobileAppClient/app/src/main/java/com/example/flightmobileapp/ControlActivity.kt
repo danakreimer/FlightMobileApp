@@ -1,13 +1,12 @@
 package com.example.flightmobileapp
 
-import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
+import android.content.Intent
+import android.graphics.BitmapFactory
 import android.widget.ImageView
-import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
-import com.example.flightmobileapp.JoystickView.OnMoveListener
 import com.google.gson.GsonBuilder
+import com.example.flightmobileapp.JoystickView.OnMoveListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
@@ -15,24 +14,17 @@ import kotlinx.coroutines.launch
 import okhttp3.MediaType
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
+import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
-import java.lang.Math.toRadians
-import kotlin.math.abs
-import kotlin.math.sin
-import kotlin.math.cos
 
 
 class ControlActivity : AppCompatActivity() {
-    private var currAileron: Double = 0.0
+    private var currAilaroen: Double = 0.0
     private var currThrottle: Double = 0.0
     private var currRudder: Double = 0.0
     private var currElevator: Double = 0.0
 
-    private var lastAileron: Double = 0.0
+    private var lastAilaroen: Double = 0.0
     private var lastThrottle: Double = 0.0
     private var lastRudder: Double = 0.0
     private var lastElevator: Double = 0.0
@@ -48,17 +40,18 @@ class ControlActivity : AppCompatActivity() {
         url = intent.getStringExtra("Url")
         image = findViewById<ImageView>(R.id.imageView)
         val joystick = findViewById<JoystickView>(R.id.joystickView)
-        sendCommandFromJoystick(joystick)
+        joystick.setOnMoveListener (object : OnMoveListener {
+            override fun onMove(angle: Int, strength: Int) {
 
-
+            }
+        })
+            // do whatever you want
     }
-
-
 
     //visible
     override fun onStart() {
         super.onStart()
-        //screenShotThread()
+        screenShotThread()
 
     }
 
@@ -71,7 +64,7 @@ class ControlActivity : AppCompatActivity() {
     // returns to this activity
     override fun onResume() {
         super.onResume()
-        //screenShotThread()
+        screenShotThread()
     }
 
     override fun onPause() {
@@ -80,8 +73,10 @@ class ControlActivity : AppCompatActivity() {
     }
 
 
+
+
     fun sendCommand() {
-        val jsonToSend: String = "{\"aileron\": $currAileron,\n \"rudder\": $currRudder, \n " +
+        val jsonToSend: String = "{\"aileron\": $currAilaroen,\n \"rudder\": $currRudder, \n " +
                 "\"elevator\": $currElevator, \n \"throttle\": $currThrottle\n}"
 
         val requestBody: RequestBody =
@@ -99,51 +94,16 @@ class ControlActivity : AppCompatActivity() {
         val api = retrofit.create(Api::class.java)
         val resBody = api.postCommand(requestBody).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                TODO("Not yet implemented")
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                TODO("Not yet implemented")
             }
         })
     }
 
-
-    private fun sendCommandFromSBThrottle(){
-
-    }
-
-    private fun sendCommandFromSBRudder(){
-
-    }
-
-    private fun sendCommandFromJoystick(joystick: JoystickView){
-        var isValueChanged = false
-        joystick.setOnMoveListener (object : OnMoveListener {
-            override fun onMove(angle: Int, strength: Int) {
-
-                lastElevator = sin(toRadians(angle.toDouble())) * (strength.toDouble() / 100)
-                lastAileron = cos(toRadians(angle.toDouble())) * (strength.toDouble() / 100)
-                val elevetorChange = abs(lastElevator - currElevator)
-                val aileronChange = abs(lastAileron - currAileron)
-                if(elevetorChange > 0.1){
-                    currElevator = lastElevator;
-                    isValueChanged = true
-                }
-                if(aileronChange > 0.1){
-                    currAileron = lastAileron
-                    isValueChanged = true
-                }
-
-                if(isValueChanged){
-                    requestScope.launch {
-                        sendCommand()
-                    }
-                }
-
-            }
-        })
-    }
-
-    private fun screenShotThread() {
+    fun screenShotThread() {
         isImageRequested = true;
         requestScope.launch {
             while(isImageRequested){
@@ -153,7 +113,7 @@ class ControlActivity : AppCompatActivity() {
         }
     }
 
-    private fun getScreenShot() {
+    fun getScreenShot() {
         val gson = GsonBuilder()
             .setLenient()
             .create()
