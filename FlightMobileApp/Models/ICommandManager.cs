@@ -11,7 +11,6 @@ namespace FlightMobileApp.Models
     public interface ICommandManager
     {
         public Task<Result> SendCommand(Command command);
-        public System.IO.Stream GetScreenshot();
     }
 }
 

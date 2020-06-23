@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FlightMobileApp.Controllers;
 using FlightMobileApp.Models;
 using FlightMobileApp.Utils;
 using Microsoft.AspNetCore.Builder;
@@ -27,7 +28,10 @@ namespace FlightMobileApp
             services.AddControllers();
             var telnet = new TelnetClient();
             var commandManager = new CommandManager(telnet, Configuration);
-            services.AddSingleton<ICommandManager>(commandManager);
+            var screenShot = new ScreenShotManager(Configuration);
+            services.AddSingleton<ICommandManager>(commandManager);            
+            services.AddSingleton(screenShot);
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

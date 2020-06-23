@@ -16,14 +16,12 @@ namespace FlightMobileApp.Models
 		private readonly BlockingCollection<AsyncCommand> queue;
 		private string ip;
 		private int portSocket;
-		private string portHttp;
 		private bool parsePort;
 
 		public CommandManager(ITelnetClient telnetClient, IConfiguration configur)
 		{
 			queue = new BlockingCollection<AsyncCommand>();
 			this.telnetClient = telnetClient;
-			this.portHttp = configur.GetValue<string>("Connect:PortHttp");
 			parsePort = Int32.TryParse(configur.GetValue<string>("Connect:PortSocket"), out portSocket);
 			this.ip = configur.GetValue<string>("Connect:ip");
 			initialConnectAndRequest();
@@ -76,13 +74,6 @@ namespace FlightMobileApp.Models
 			}
 		}
 
-		public System.IO.Stream GetScreenshot()
-		{
-			string url = "http://" + ip + ":" + portHttp + "/screenshot";
-			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-			HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-			return response.GetResponseStream();
-		}
 
 		public bool SetAndCheck(string path, double val)
 		{
