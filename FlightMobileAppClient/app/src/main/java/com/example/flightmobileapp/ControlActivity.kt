@@ -51,7 +51,10 @@ class ControlActivity : AppCompatActivity() {
     //visible
     override fun onStart() {
         super.onStart()
+        /*
         screenShotThread()
+
+         */
 
     }
 
@@ -64,7 +67,9 @@ class ControlActivity : AppCompatActivity() {
     // returns to this activity
     override fun onResume() {
         super.onResume()
+        /*
         screenShotThread()
+         */
     }
 
     override fun onPause() {
