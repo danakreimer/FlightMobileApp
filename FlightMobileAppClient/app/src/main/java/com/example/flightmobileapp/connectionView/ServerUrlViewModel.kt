@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
+import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.databinding.Bindable
@@ -18,6 +19,7 @@ import com.example.flightmobileapp.database.ServerUrlRepository
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -26,6 +28,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.time.LocalDateTime
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 
 class ServerUrlViewModel(private val repository: ServerUrlRepository,
@@ -38,7 +41,7 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
     companion object {
         lateinit var bitmapScreenShot: Bitmap
     }
-
+    
     @Bindable
     // User input
     val inputUrl = MutableLiveData<String>()
@@ -53,40 +56,55 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
             Toast.makeText(applicationContext, "Please enter URL", Toast.LENGTH_SHORT).show()
         // Insert only non-empty URL that contains no spaces
         } else {
-            val gson = GsonBuilder()
-                .setLenient()
-                .create()
-            val retrofit = Retrofit.Builder()
-                .baseUrl(url)
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build()
-            val api = retrofit.create(Api::class.java)
-            val body = api.getImg().enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                    val responseBytes = response.body()?.byteStream()
-
-                    // If connection succeeded
-                    if(responseBytes != null){
-                        bitmapScreenShot = BitmapFactory.decodeStream(responseBytes)
-                        startControlActivity(url)
+            if (!URLUtil.isValidUrl(url)) {
+                Toast.makeText(applicationContext, "Invalid URL", Toast.LENGTH_SHORT).show()
+            } else {
+                val gson = GsonBuilder()
+                    .setLenient()
+                    .create()
+                val okHttpClient: OkHttpClient = OkHttpClient.Builder()
+                    .readTimeout(10, TimeUnit.SECONDS)
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .build()
+                val retrofit = Retrofit.Builder()
+                    .baseUrl(url)
+                    .addConverterFactory(GsonConverterFactory.create(gson))
+                    .client(okHttpClient)
+                    .build()
+                val api = retrofit.create(Api::class.java)
+                val body = api.getImg().enqueue(object : Callback<ResponseBody> {
+                    override fun onResponse(
+                        call: Call<ResponseBody>,
+                        response: Response<ResponseBody>
+                    ) {
+                        val responseBytes = response.body()?.byteStream()
+                        if ((response.code() != 200) || (responseBytes == null)) {
+                            Toast.makeText(
+                                applicationContext, "Connection failed. Please try again",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        // If connection succeeded
+                        else {
+                            bitmapScreenShot = BitmapFactory.decodeStream(responseBytes)
+                            startControlActivity(url)
+                        }
                     }
-                    else{
+
+                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                         // Show an error message
-                        Toast.makeText(applicationContext, "Connection failed. Please try again",
-                            Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            applicationContext, "Connection failed. Please try again",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
-                }
-
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    // Show an error message
-                    Toast.makeText(applicationContext, "Connection failed. Please try again",
-                        Toast.LENGTH_SHORT).show()
-                }
-            })
-            // Insert URL to database
-            insert(ServerUrl(url.toLowerCase(Locale.ROOT), LocalDateTime.now().toString()))
-            inputUrl.value = null
+                })
+                // Insert URL to database
+                insert(ServerUrl(url.toLowerCase(Locale.ROOT), LocalDateTime.now().toString()))
+                inputUrl.value = null
+            }
         }
+
     }
 
     // Start control activity

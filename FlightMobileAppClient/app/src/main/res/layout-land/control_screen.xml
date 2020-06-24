@@ -8,21 +8,14 @@
     android:orientation="vertical">
 
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="match_parent"
-        android:layout_height="329dp"
-        android:contentDescription="@string/flightgear_screenshot"
-        app:srcCompat="@drawable/ic_launcher_foreground" />
-
     <io.github.controlwear.virtual.joystick.android.JoystickView
         android:id="@+id/joystickView"
-        android:layout_width="229dp"
-        android:layout_height="229dp"
+        android:layout_width="213dp"
+        android:layout_height="216dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="89dp"
-        android:layout_marginBottom="71dp"
+        android:layout_marginEnd="387dp"
+        android:layout_marginBottom="87dp"
         android:focusableInTouchMode="true"
         android:layoutDirection="inherit"
         android:visibility="visible"
@@ -34,25 +27,23 @@
     <SeekBar
         android:id="@+id/seekBarRudder"
         style="@android:style/Widget.Material.SeekBar"
-        android:layout_width="235dp"
-        android:layout_height="54dp"
+        android:layout_width="219dp"
+        android:layout_height="48dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginStart="0dp"
-        android:layout_marginEnd="84dp"
-        android:layout_marginBottom="28dp"
+        android:layout_marginEnd="378dp"
+        android:layout_marginBottom="57dp"
         android:max="200"
         android:progress="100" />
 
     <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
         android:layout_width="wrap_content"
-        android:layout_height="242dp"
-        android:layout_alignParentStart="true"
+        android:layout_height="213dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="39dp"
-        android:layout_marginEnd="284dp"
-        android:layout_marginBottom="60dp"
+        android:layout_marginEnd="558dp"
+        android:layout_marginBottom="78dp"
         android:paddingStart="30dp"
         android:paddingTop="10dp"
         android:paddingEnd="40dp"
@@ -60,10 +51,11 @@
 
         <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
             android:id="@+id/seekBarThrottle"
-            android:layout_width="0dp"
+            android:layout_width="28dp"
             android:layout_height="0dp"
             android:splitTrack="false"
             app:seekBarRotation="CW270" />
+
     </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
 
     <TextView
@@ -72,10 +64,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="192dp"
-        android:layout_marginBottom="292dp"
+        android:layout_marginEnd="500dp"
+        android:layout_marginBottom="295dp"
         android:text="@string/aileron"
-        android:textSize="18sp" />
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/textViewElevator"
@@ -83,10 +75,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="25dp"
-        android:layout_marginBottom="179dp"
+        android:layout_marginEnd="342dp"
+        android:layout_marginBottom="186dp"
         android:text="@string/elevator"
-        android:textSize="18sp" />
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/textView3"
@@ -94,21 +86,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="189dp"
-        android:layout_marginBottom="15dp"
+        android:layout_marginEnd="500dp"
+        android:layout_marginBottom="38dp"
         android:text="@string/rudder"
-        android:textSize="18sp" />
-
-    <TextView
-        android:id="@+id/textView4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginEnd="345dp"
-        android:layout_marginBottom="176dp"
-        android:text="@string/throttle"
-        android:textSize="18sp" />
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/aileronValue"
@@ -117,8 +98,9 @@
         android:layout_alignRight="@id/textViewAileron"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="153dp"
-        android:layout_marginBottom="292dp"
+        android:layout_marginEnd="467dp"
+        android:layout_marginRight="-32dp"
+        android:layout_marginBottom="295dp"
         android:autoText="false"
         android:gravity="left"
         android:textColor="#88A8A5"
@@ -130,8 +112,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="51dp"
-        android:layout_marginBottom="155dp"
+        android:layout_marginEnd="354dp"
+        android:layout_marginBottom="165dp"
         android:gravity="center"
         android:textColor="#88A8A5"
         android:textSize="15sp" />
@@ -142,11 +124,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="370dp"
-        android:layout_marginBottom="158dp"
+        android:layout_marginEnd="636dp"
+        android:layout_marginBottom="160dp"
         android:textColor="#88A8A5"
-        android:textSize="15sp"
-        tools:text="0" />
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/rudderValue"
@@ -154,8 +135,30 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="155dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="465dp"
+        android:layout_marginBottom="37dp"
         android:textColor="#88A8A5"
+        android:textSize="15sp" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="325dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="1dp"
+        android:layout_marginBottom="0dp"
+        android:contentDescription="@string/flightgear_screenshot"
+        app:srcCompat="@drawable/ic_launcher_foreground" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="627dp"
+        android:layout_marginBottom="182dp"
+        android:text="@string/throttle"
         android:textSize="15sp" />
 </RelativeLayout>
