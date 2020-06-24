@@ -26,8 +26,15 @@ namespace FlightMobileApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            Byte[] response = await screenShotManager.GetScreenshot();
-            return File(response, "image/jpg");
+            try
+            {
+                Byte[] response = await screenShotManager.GetScreenshot();
+                return File(response, "image/jpg");
+            } catch
+            {
+                return await Task.FromResult(StatusCode(500));
+            }
+            
         }
 
         
