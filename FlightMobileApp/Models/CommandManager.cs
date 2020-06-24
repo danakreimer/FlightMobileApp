@@ -80,26 +80,34 @@ namespace FlightMobileApp.Models
 		{
 			string setRequest = "set " + path + " " + val + "\n";
 			string getRequest = "get " + path + "\n";
-			telnetClient.Write(setRequest);
-			telnetClient.Write(getRequest);
-			double returnValue;
-
-			bool response = double.TryParse(telnetClient.Read().Replace("\n", ""), out returnValue);
-			if (response)
+			try
 			{
-				if (returnValue != val)
+				telnetClient.Write(setRequest);
+				telnetClient.Write(getRequest);
+				double returnValue;
+
+				bool response = double.TryParse(telnetClient.Read().Replace("\n", ""), out returnValue);
+				if (response)
 				{
-					return false;
+					if (returnValue != val)
+					{
+						return false;
+					}
+					else
+					{
+						return true;
+					}
 				}
 				else
 				{
-					return true;
+					return false;
 				}
 			}
-			else
+			catch (Exception)
 			{
 				return false;
 			}
+
 		}
 	}
 }
