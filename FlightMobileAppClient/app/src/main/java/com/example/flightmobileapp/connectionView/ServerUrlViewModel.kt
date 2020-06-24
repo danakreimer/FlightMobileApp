@@ -1,6 +1,8 @@
 package com.example.flightmobileapp.connectionView
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -9,11 +11,19 @@ import androidx.databinding.Observable
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.flightmobileapp.Api
 import com.example.flightmobileapp.ControlActivity
 import com.example.flightmobileapp.database.ServerUrl
 import com.example.flightmobileapp.database.ServerUrlRepository
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.time.LocalDateTime
 import java.util.*
 
@@ -24,6 +34,10 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
     Observable {
     // Five most recently used urls from data table
     val urls = repository.urls
+
+    companion object {
+        lateinit var bitmapScreenShot: Bitmap
+    }
 
     @Bindable
     // User input
@@ -39,25 +53,36 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
             Toast.makeText(applicationContext, "Please enter URL", Toast.LENGTH_SHORT).show()
         // Insert only non-empty URL that contains no spaces
         } else {
+            val gson = GsonBuilder()
+                .setLenient()
+                .create()
+            val retrofit = Retrofit.Builder()
+                .baseUrl(url)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build()
+            val api = retrofit.create(Api::class.java)
+            val body = api.getImg().enqueue(object : Callback<ResponseBody> {
+                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    val responseBytes = response.body()?.byteStream()
 
+                    // If connection succeeded
+                    if(responseBytes != null){
+                        bitmapScreenShot = BitmapFactory.decodeStream(responseBytes)
+                        startControlActivity(url)
+                    }
+                    else{
+                        // Show an error message
+                        Toast.makeText(applicationContext, "Connection failed. Please try again",
+                            Toast.LENGTH_SHORT).show()
+                    }
+                }
 
-            /*
-
-            Send a request to get a screenshot from the simulator
-
-             */
-
-
-            // If connection succeeded
-            if (true) {
-                // Start control activity
-                startControlActivity(url)
-            // If connection failed
-            } else {
-                // Show an error message
-                Toast.makeText(applicationContext, "Connection failed. Please try again",
-                    Toast.LENGTH_SHORT).show()
-            }
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    // Show an error message
+                    Toast.makeText(applicationContext, "Connection failed. Please try again",
+                        Toast.LENGTH_SHORT).show()
+                }
+            })
             // Insert URL to database
             insert(ServerUrl(url.toLowerCase(Locale.ROOT), LocalDateTime.now().toString()))
             inputUrl.value = null
@@ -70,14 +95,6 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         // Pass URL to the control activity
         intent.putExtra("Url", url)
-
-        /*
-
-        ----- To get the URL from the control activity, use: -----
-        val url = intent.getStringExtra("Url")
-
-         */
-
         applicationContext.startActivity(intent)
     }
 
@@ -104,5 +121,30 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
     // Implement Observable Interface
     override fun addOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) {
         // No implementation
+    }
+
+    private fun getScreenShot(url: String) {
+        val gson = GsonBuilder()
+            .setLenient()
+            .create()
+        val retrofit = Retrofit.Builder()
+            .baseUrl(url.toString())
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+        val api = retrofit.create(Api::class.java)
+        val body = api.getImg().enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                val responseBytes = response.body()?.byteStream()
+                if(responseBytes != null){
+
+                }
+                val imageBm = BitmapFactory.decodeStream(responseBytes)
+
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                TODO("Not yet implemented")
+            }
+        })
     }
 }

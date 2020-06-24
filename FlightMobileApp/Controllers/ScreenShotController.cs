@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace FlightMobileApp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("/[controller]")]
     [ApiController]
     public class ScreenShotController : ControllerBase
     {

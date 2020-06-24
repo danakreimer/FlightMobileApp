@@ -36,6 +36,7 @@ namespace FlightMobileApp.Models
 			}
 			string initRequest = "data\n";
 			telnetClient.Write(initRequest);
+
 		}
 
 		public Task<Result> SendCommand(Command command)

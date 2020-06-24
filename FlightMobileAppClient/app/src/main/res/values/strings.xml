@@ -4,4 +4,8 @@
     <string name="type_url">Type URL...</string>
     <string name="new_type_url">Type URL ...</string>
     <string name="flightgear_screenshot">FlightGear Screenshot</string>
+    <string name="rudder">rudder</string>
+    <string name="throttle">throttle</string>
+    <string name="aileron">aileron</string>
+    <string name="elevator">elevator</string>
 </resources>
