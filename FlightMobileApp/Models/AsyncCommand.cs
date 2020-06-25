@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 namespace FlightMobileApp.Models
 {
     public enum Result { Ok, NotOk };
+
     public class AsyncCommand {
         public Command Command { get; private set; }
         public Task<Result> Task { get => Completion.Task; }

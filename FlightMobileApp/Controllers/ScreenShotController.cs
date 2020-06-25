@@ -30,14 +30,11 @@ namespace FlightMobileApp.Controllers
             {
                 Byte[] response = await screenShotManager.GetScreenshot();
                 return File(response, "image/jpg");
-            } catch
+            } 
+            catch
             {
                 return await Task.FromResult(StatusCode(500));
             }
-            
         }
-
-        
-
     }
 }

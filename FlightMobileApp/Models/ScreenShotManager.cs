@@ -11,6 +11,7 @@ namespace FlightMobileApp.Models
     {
         private string portHttp;
         private string ip;
+
         public ScreenShotManager(IConfiguration configur)
         {
             this.portHttp = configur.GetValue<string>("Connect:PortHttp");

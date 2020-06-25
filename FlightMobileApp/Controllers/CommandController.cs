@@ -13,6 +13,7 @@ namespace FlightMobileApp.Controllers
     public class CommandController : ControllerBase
     {
         private readonly ICommandManager commandManager;
+
         // Constructor
         public CommandController(ICommandManager commandManager)
         {
@@ -25,18 +26,24 @@ namespace FlightMobileApp.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> SendCommandToSimulator(Command command)
         {
-            Task<Result> result;
-            result = commandManager.SendCommand(command);
-            result.Wait();
-            if (result.Result == Result.NotOk)
+            try
             {
-                return await Task.FromResult(BadRequest());
-                
+                Task<Result> result;
+                result = commandManager.SendCommand(command);
+                result.Wait();
+                if (result.Result == Result.NotOk)
+                {
+                    return await Task.FromResult(BadRequest());
+                }
+                else
+                {
+                    return await Task.FromResult(Ok());
+                }
             }
-            else
+            catch
             {
-                return await Task.FromResult(Ok());
-            }        
+                return BadRequest();
+            }
         }
     }
 }

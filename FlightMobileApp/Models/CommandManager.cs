@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace FlightMobileApp.Models
 {
-	
 	class CommandManager : ICommandManager
 	{
 		private readonly ITelnetClient telnetClient;
@@ -30,13 +29,23 @@ namespace FlightMobileApp.Models
 
 		public void initialConnectAndRequest()
 		{
-			if (parsePort)
-			{
-				this.telnetClient.Connect(ip, portSocket);
-			}
 			string initRequest = "data\n";
-			telnetClient.Write(initRequest);
-
+			try
+			{
+				if (parsePort)
+				{
+					this.telnetClient.Connect(ip, portSocket);
+					telnetClient.Write(initRequest);
+				}
+				else
+				{
+					Console.WriteLine("Error: Connection failed\n");
+				}
+			}
+			catch (Exception)
+			{
+				Console.WriteLine("Error: Connection failed\n");
+			}
 		}
 
 		public Task<Result> SendCommand(Command command)
@@ -55,6 +64,7 @@ namespace FlightMobileApp.Models
 				string pathElevator = "/controls/flight/elevator";
 				string pathRudder = "/controls/flight/rudder";
 				string pathThrottle = "/controls/engines/current-engine/throttle";
+
 				if (!SetAndCheck(pathAileron, asyncCommand.Command.Aileron))
 				{
 					result = Result.NotOk;
@@ -75,18 +85,18 @@ namespace FlightMobileApp.Models
 			}
 		}
 
-
 		public bool SetAndCheck(string path, double val)
 		{
+			double returnValue;
+			bool response;
 			string setRequest = "set " + path + " " + val + "\n";
 			string getRequest = "get " + path + "\n";
+
 			try
 			{
 				telnetClient.Write(setRequest);
 				telnetClient.Write(getRequest);
-				double returnValue;
-
-				bool response = double.TryParse(telnetClient.Read().Replace("\n", ""), out returnValue);
+				response = double.TryParse(telnetClient.Read().Replace("\n", ""), out returnValue);
 				if (response)
 				{
 					if (returnValue != val)
@@ -107,7 +117,6 @@ namespace FlightMobileApp.Models
 			{
 				return false;
 			}
-
 		}
 	}
 }

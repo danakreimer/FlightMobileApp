@@ -8,14 +8,6 @@ namespace FlightMobileApp.Models
 {
 	public class Command
 	{
-		/**public Command(double aileron, double throtle, double rudder, double elevator)
-		{
-			Aileron = aileron;
-			Throttle = throtle;
-			Rudder = rudder;
-			Elevator = elevator; 
-		}**/
-
 		[JsonProperty("aileron")]
 		public double Aileron { get; set; }
 		[JsonProperty("rudder")]
