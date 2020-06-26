@@ -43,6 +43,7 @@ class ControlActivity : AppCompatActivity() {
     private var lastThrottle: Double = 0.0
     private var lastRudder: Double = 0.0
     private var lastElevator: Double = 0.0
+
     private var isImageRequested = false;
     private var url: String? = null
     private var image: ImageView? = null
@@ -89,7 +90,6 @@ class ControlActivity : AppCompatActivity() {
         lastRudder = savedInstanceState.getDouble("lRudder")
     }
 
-
     override fun onDestroy() {
         super.onDestroy()
         isImageRequested = false
@@ -118,7 +118,6 @@ class ControlActivity : AppCompatActivity() {
         isImageRequested = false
     }
 
-
     fun sendCommand() {
         val jsonToSend: String = "{\"aileron\": $currAileron,\n \"rudder\": $currRudder, \n " +
                 "\"elevator\": $currElevator, \n \"throttle\": $currThrottle\n}"
@@ -144,7 +143,8 @@ class ControlActivity : AppCompatActivity() {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.code() != 200) {
                     Toast.makeText(
-                        applicationContext, "Failed to send command. Please go back and try again",
+                        applicationContext,
+                        "Failed to send command. Please go back and try to reconnect",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -153,13 +153,12 @@ class ControlActivity : AppCompatActivity() {
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 Toast.makeText(
                     applicationContext,
-                    "Connection with server failed. Please go back and try again",
+                    "Connection with server failed. Please go back and try to reconnect",
                     Toast.LENGTH_SHORT
                 ).show()
             }
         })
     }
-
 
     private fun sendCommandFromSBThrottle() {
         val throttleSeekBar = findViewById<VerticalSeekBar>(R.id.seekBarThrottle)
@@ -259,7 +258,6 @@ class ControlActivity : AppCompatActivity() {
                 }
             }
         }
-
     }
 
     private fun screenShotThread() {
@@ -291,7 +289,8 @@ class ControlActivity : AppCompatActivity() {
                 val responseBytes = response.body()?.byteStream()
                 if ((response.code() != 200) || (responseBytes == null)) {
                     Toast.makeText(
-                        applicationContext, "Failed to send command. Please go back and try again",
+                        applicationContext,
+                        "Failed to send command. Please go back and try to reconnect",
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
@@ -306,7 +305,7 @@ class ControlActivity : AppCompatActivity() {
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 Toast.makeText(
                     applicationContext,
-                    "Connection with server failed. Please go back and try again",
+                    "Connection with server failed. Please go back and try to reconnect",
                     Toast.LENGTH_SHORT
                 ).show()
             }

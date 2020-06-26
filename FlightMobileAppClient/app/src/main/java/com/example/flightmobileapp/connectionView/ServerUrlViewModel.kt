@@ -54,57 +54,54 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
         if (url.isNullOrBlank()) {
             // Show an error message
             Toast.makeText(applicationContext, "Please enter URL", Toast.LENGTH_SHORT).show()
-        // Insert only non-empty URL that contains no spaces
-        } else {
-            if (!URLUtil.isValidUrl(url)) {
+        // If URL is not valid
+        } else if (!URLUtil.isValidUrl(url)) {
                 Toast.makeText(applicationContext, "Invalid URL", Toast.LENGTH_SHORT).show()
-            } else {
-                val gson = GsonBuilder()
-                    .setLenient()
-                    .create()
-                val okHttpClient: OkHttpClient = OkHttpClient.Builder()
-                    .readTimeout(10, TimeUnit.SECONDS)
-                    .connectTimeout(10, TimeUnit.SECONDS)
-                    .build()
-                val retrofit = Retrofit.Builder()
-                    .baseUrl(url)
-                    .addConverterFactory(GsonConverterFactory.create(gson))
-                    .client(okHttpClient)
-                    .build()
-                val api = retrofit.create(Api::class.java)
-                val body = api.getImg().enqueue(object : Callback<ResponseBody> {
-                    override fun onResponse(
-                        call: Call<ResponseBody>,
-                        response: Response<ResponseBody>
-                    ) {
-                        val responseBytes = response.body()?.byteStream()
-                        if ((response.code() != 200) || (responseBytes == null)) {
-                            Toast.makeText(
-                                applicationContext, "Connection failed. Please try again",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                        // If connection succeeded
-                        else {
-                            bitmapScreenShot = BitmapFactory.decodeStream(responseBytes)
-                            startControlActivity(url)
-                        }
-                    }
-
-                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                        // Show an error message
-                        Toast.makeText(
-                            applicationContext, "Connection failed. Please try again",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                })
-                // Insert URL to database
-                insert(ServerUrl(url.toLowerCase(Locale.ROOT), LocalDateTime.now().toString()))
-                inputUrl.value = null
-            }
+        // If URL is valid
+        } else {
+            // Try to get a screenshot and start control activity
+            getScreenshot(url);
+            // Insert URL to database
+            insert(ServerUrl(url.toLowerCase(Locale.ROOT), LocalDateTime.now().toString()))
+            inputUrl.value = null
         }
+    }
 
+    // Send a request to get a screenshot.
+    // If a screenshot receives successfully, start control activity
+    private fun getScreenshot(url: String) {
+        val gson = GsonBuilder().setLenient().create()
+        val okHttpClient: OkHttpClient = OkHttpClient.Builder()
+            .readTimeout(10, TimeUnit.SECONDS)
+            .connectTimeout(10, TimeUnit.SECONDS).build()
+        val retrofit = Retrofit.Builder().baseUrl(url)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .client(okHttpClient).build()
+        val api = retrofit.create(Api::class.java)
+        val body = api.getImg().enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>) {
+                val responseBytes = response.body()?.byteStream()
+                // If getting a screenshot failed
+                if ((response.code() != 200) || (responseBytes == null)) {
+                    // Show an error message
+                    Toast.makeText(applicationContext,
+                        "Connection failed. Please try again",
+                        Toast.LENGTH_SHORT).show()
+                // If getting a screenshot succeeded
+                } else {
+                    bitmapScreenShot = BitmapFactory.decodeStream(responseBytes)
+                    // Start control activity
+                    startControlActivity(url)
+                }
+            }
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                // Show an error message
+                Toast.makeText(applicationContext, "Connection failed. Please try again",
+                    Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     // Start control activity
@@ -139,30 +136,5 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
     // Implement Observable Interface
     override fun addOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) {
         // No implementation
-    }
-
-    private fun getScreenShot(url: String) {
-        val gson = GsonBuilder()
-            .setLenient()
-            .create()
-        val retrofit = Retrofit.Builder()
-            .baseUrl(url.toString())
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-        val api = retrofit.create(Api::class.java)
-        val body = api.getImg().enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                val responseBytes = response.body()?.byteStream()
-                if(responseBytes != null){
-
-                }
-                val imageBm = BitmapFactory.decodeStream(responseBytes)
-
-            }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                TODO("Not yet implemented")
-            }
-        })
     }
 }
