@@ -1,8 +1,6 @@
 package com.example.flightmobileapp
 
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.SeekBar
@@ -17,10 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.MediaType
-import okhttp3.OkHttpClient
-import okhttp3.RequestBody
-import okhttp3.ResponseBody
+import okhttp3.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -44,16 +39,34 @@ class ControlActivity : AppCompatActivity() {
     private var lastRudder: Double = 0.0
     private var lastElevator: Double = 0.0
 
-    private var isImageRequested = false;
+    private var shouldFetchImage = false;
     private var url: String? = null
     private var image: ImageView? = null
 
+    private var api: Api? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.control_screen)
         url = intent.getStringExtra("Url")
+        val dispatcher: Dispatcher = Dispatcher()
+        dispatcher.maxRequests = 1
+        val okHttpClient = OkHttpClient.Builder()
+                .dispatcher(dispatcher)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .build()
+        val gson = GsonBuilder()
+                .setLenient()
+                .create()
+        val retrofit = Retrofit.Builder()
+                .baseUrl(url.toString())
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .client(okHttpClient)
+                .build()
+        api = retrofit.create(Api::class.java)
+
         image = findViewById<ImageView>(R.id.imageView)
         image?.setImageBitmap(bitmapScreenShot)
         val joystick = findViewById<JoystickView>(R.id.joystickView)
@@ -64,6 +77,7 @@ class ControlActivity : AppCompatActivity() {
         sendCommandFromJoystick(joystick)
         sendCommandFromSBThrottle()
         sendCommandFromSBRudder()
+        screenShotThread()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -92,30 +106,30 @@ class ControlActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        isImageRequested = false
+        shouldFetchImage = false
     }
 
     //visible
     override fun onStart() {
         super.onStart()
-        screenShotThread()
+        shouldFetchImage = true;
     }
 
     // no longer visible
     override fun onStop() {
         super.onStop()
-        isImageRequested = false
+        shouldFetchImage = false
     }
 
     // returns to this activity
     override fun onResume() {
         super.onResume()
-        screenShotThread()
+        shouldFetchImage = true;
     }
 
     override fun onPause() {
         super.onPause()
-        isImageRequested = false
+        shouldFetchImage = false
     }
 
     fun sendCommand() {
@@ -125,21 +139,7 @@ class ControlActivity : AppCompatActivity() {
         val requestBody: RequestBody =
             RequestBody.create(MediaType.parse("application/json"), jsonToSend)
 
-        val gson = GsonBuilder().setLenient().create()
-        val okHttpClient: OkHttpClient = OkHttpClient.Builder()
-            .readTimeout(10, TimeUnit.SECONDS)
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .build()
-        val retrofit =
-            Retrofit
-                .Builder()
-                .baseUrl(this.url.toString())
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .client(okHttpClient)
-                .build()
-
-        val api = retrofit.create(Api::class.java)
-        val resBody = api.postCommand(requestBody).enqueue(object : Callback<ResponseBody> {
+        val resBody = api?.postCommand(requestBody)?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.code() != 200) {
                     Toast.makeText(
@@ -174,9 +174,7 @@ class ControlActivity : AppCompatActivity() {
                 val throttleChange = abs(lastThrottle - currThrottle)
                 if (throttleChange > 0.01) {
                     currThrottle = lastThrottle
-                    CoroutineScope(IO).launch {
-                        sendCommand()
-                    }
+                    sendCommand()
                 }
             }
 
@@ -205,9 +203,7 @@ class ControlActivity : AppCompatActivity() {
                 val rudderChange = abs(lastRudder - currRudder)
                 if (rudderChange > 0.02) {
                     currRudder = lastRudder
-                    CoroutineScope(IO).launch {
-                        sendCommand()
-                    }
+                    sendCommand()
                 }
             }
 
@@ -222,8 +218,8 @@ class ControlActivity : AppCompatActivity() {
     }
 
     private fun sendCommandFromJoystick(joystick: JoystickView) {
-        var isValueChanged = false
         joystick.setOnMoveListener { angle, strength ->
+            var isValueChanged = false
 
             lastElevator = sin(toRadians(angle.toDouble())) * (strength.toDouble() / 100)
             lastAileron = cos(toRadians(angle.toDouble())) * (strength.toDouble() / 100)
@@ -241,9 +237,9 @@ class ControlActivity : AppCompatActivity() {
                 findViewById<TextView>(R.id.elevatorValue).text = roundElevator.toString()
             }
 
-            val elevetorChange = abs(lastElevator - currElevator)
+            val elevatorChange = abs(lastElevator - currElevator)
             val aileronChange = abs(lastAileron - currAileron)
-            if (elevetorChange > 0.02) {
+            if (elevatorChange > 0.02) {
                 currElevator = lastElevator;
                 isValueChanged = true
             }
@@ -253,48 +249,39 @@ class ControlActivity : AppCompatActivity() {
             }
 
             if (isValueChanged) {
-                CoroutineScope(IO).launch {
-                    sendCommand()
-                }
+                sendCommand()
             }
         }
     }
 
     private fun screenShotThread() {
-        isImageRequested = true;
         CoroutineScope(IO).launch {
-            while (isImageRequested) {
-                getScreenShot()
-                delay(250)
+            while (!isDestroyed) {
+                if (shouldFetchImage) {
+                    getScreenShot()
+                }
+
+                delay(500)
             }
         }
     }
 
     private fun getScreenShot() {
-        val gson = GsonBuilder()
-            .setLenient()
-            .create()
-        val okHttpClient: OkHttpClient = OkHttpClient.Builder()
-            .readTimeout(10, TimeUnit.SECONDS)
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .build()
-        val retrofit = Retrofit.Builder()
-            .baseUrl(this.url.toString())
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .client(okHttpClient)
-            .build()
-        val api = retrofit.create(Api::class.java)
-        api.getImg().enqueue(object : Callback<ResponseBody> {
+
+        api?.getImg()?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 val responseBytes = response.body()?.byteStream()
                 if ((response.code() != 200) || (responseBytes == null)) {
                     Toast.makeText(
                         applicationContext,
-                        "Failed to send command. Please go back and try to reconnect",
+                        "Failed to get screenshot. Please go back and try to reconnect",
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
                     val imageBm = BitmapFactory.decodeStream(responseBytes)
+
+                    // close stream after decoding
+                    responseBytes.close()
                     runOnUiThread {
                         image = findViewById<ImageView>(R.id.imageView)
                         image?.setImageBitmap(imageBm)

@@ -26,7 +26,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.time.LocalDateTime
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -61,8 +61,10 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
         } else {
             // Try to get a screenshot and start control activity
             getScreenshot(url);
+            val date = Date()
+            val dateString = SimpleDateFormat.getDateTimeInstance().format(date);
             // Insert URL to database
-            insert(ServerUrl(url.toLowerCase(Locale.ROOT), LocalDateTime.now().toString()))
+            insert(ServerUrl(url.toLowerCase(Locale.ROOT), dateString))
             inputUrl.value = null
         }
     }

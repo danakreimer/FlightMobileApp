@@ -42,7 +42,7 @@ namespace FlightMobileApp.Controllers
             }
             catch
             {
-                return BadRequest();
+                return await Task.FromResult(StatusCode(500));
             }
         }
     }
