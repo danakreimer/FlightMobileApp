@@ -1,4 +1,5 @@
 package com.example.flightmobileapp.connectionView
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -49,7 +50,7 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
     // User input
     val inputUrl = MutableLiveData<String>()
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    @SuppressLint("SimpleDateFormat")
     // Insert url to database, connect to server and start control activity
     fun connect() {
         val url: String? = inputUrl.value
