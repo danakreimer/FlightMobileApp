@@ -37,8 +37,6 @@ namespace FlightMobileApp.Utils
             byte[] data = System.Text.Encoding.ASCII.GetBytes(command);
             // Send the command to the connected TcpServer.
             stream.Write(data, 0, data.Length);
-            // Write the command sent to the console.
-            Console.WriteLine("Sent: {0}", command);
         }
 
         // Receive server response.
@@ -51,8 +49,6 @@ namespace FlightMobileApp.Utils
             // Read the first batch of the TcpServer response bytes.
             int bytes = stream.Read(data, 0, data.Length);
             responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
-            // Write the response received to the console.
-            Console.WriteLine("Received: {0}", responseData);
             return responseData;
         }
 

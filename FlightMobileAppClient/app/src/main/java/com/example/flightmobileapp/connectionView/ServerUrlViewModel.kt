@@ -1,4 +1,5 @@
 package com.example.flightmobileapp.connectionView
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -28,6 +29,8 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -47,7 +50,7 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
     // User input
     val inputUrl = MutableLiveData<String>()
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    @SuppressLint("SimpleDateFormat")
     // Insert url to database, connect to server and start control activity
     fun connect() {
         val url: String? = inputUrl.value
@@ -62,9 +65,11 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
         } else {
             // Try to get a screenshot and start control activity
             try {
-                getScreenshot(url);
+                getScreenshot(url)
+                // Get current date and time
                 val date = Date()
-                val dateString = SimpleDateFormat.getDateTimeInstance().format(date);
+                val formatter = SimpleDateFormat("yyyy.MM.dd HH:mm:ss")
+                val dateString: String = formatter.format(date)
                 // Insert URL to database
                 insert(ServerUrl(url.toLowerCase(Locale.ROOT), dateString))
                 inputUrl.value = null
