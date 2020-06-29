@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace FlightMobileApp.Models
 {
+	// Command class.
 	public class Command
 	{
+		// The propreties of each command.
 		[JsonProperty("aileron")]
 		public double Aileron { get; set; }
 		[JsonProperty("rudder")]
