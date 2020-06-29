@@ -16,6 +16,7 @@ import com.example.flightmobileapp.Api
 import com.example.flightmobileapp.ControlActivity
 import com.example.flightmobileapp.database.ServerUrl
 import com.example.flightmobileapp.database.ServerUrlRepository
+import com.example.flightmobileapp.databinding.ActivityMainBinding
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -60,12 +61,17 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
         // If URL is valid
         } else {
             // Try to get a screenshot and start control activity
-            getScreenshot(url);
-            val date = Date()
-            val dateString = SimpleDateFormat.getDateTimeInstance().format(date);
-            // Insert URL to database
-            insert(ServerUrl(url.toLowerCase(Locale.ROOT), dateString))
-            inputUrl.value = null
+            try {
+                getScreenshot(url);
+                val date = Date()
+                val dateString = SimpleDateFormat.getDateTimeInstance().format(date);
+                // Insert URL to database
+                insert(ServerUrl(url.toLowerCase(Locale.ROOT), dateString))
+                inputUrl.value = null
+            } catch (e: Exception) {
+                Toast.makeText(applicationContext, "Invalid URL",
+                    Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -79,6 +85,8 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
         val retrofit = Retrofit.Builder().baseUrl(url)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .client(okHttpClient).build()
+        Toast.makeText(applicationContext, "Connecting ...",
+            Toast.LENGTH_SHORT).show()
         val api = retrofit.create(Api::class.java)
         val body = api.getImg().enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
