@@ -88,22 +88,15 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
             .readTimeout(10, TimeUnit.SECONDS)
             .connectTimeout(10, TimeUnit.SECONDS).build()
         val retrofit = Retrofit.Builder().baseUrl(url)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .client(okHttpClient).build()
-        Toast.makeText(applicationContext, "Connecting ...",
-            Toast.LENGTH_SHORT).show()
+            .addConverterFactory(GsonConverterFactory.create(gson)).client(okHttpClient).build()
+        Toast.makeText(applicationContext, "Connecting ...", Toast.LENGTH_SHORT).show()
         val api = retrofit.create(Api::class.java)
-        val body = api.getImg().enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(
-                call: Call<ResponseBody>,
-                response: Response<ResponseBody>) {
+        api.getImg().enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 val responseBytes = response.body()?.byteStream()
                 // If getting a screenshot failed
                 if ((response.code() != 200) || (responseBytes == null)) {
-                    // Show an error message
-                    Toast.makeText(applicationContext,
-                        "Connection failed. Please try again",
-                        Toast.LENGTH_SHORT).show()
+                    showConnectionError()
                 // If getting a screenshot succeeded
                 } else {
                     bitmapScreenShot = BitmapFactory.decodeStream(responseBytes)
@@ -112,11 +105,16 @@ class ServerUrlViewModel(private val repository: ServerUrlRepository,
                 }
             }
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                // Show an error message
-                Toast.makeText(applicationContext, "Connection failed. Please try again",
-                    Toast.LENGTH_SHORT).show()
+                showConnectionError()
             }
         })
+    }
+
+    // Create a toast error message
+    private fun showConnectionError() {
+        Toast.makeText(applicationContext,
+            "Connection failed. Please try again",
+            Toast.LENGTH_SHORT).show()
     }
 
     // Start control activity

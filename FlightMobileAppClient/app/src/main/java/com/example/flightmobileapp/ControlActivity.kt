@@ -27,59 +27,66 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
-
 class ControlActivity : AppCompatActivity() {
     private var currAileron: Double = 0.0
     private var currThrottle: Double = 0.0
     private var currRudder: Double = 0.0
     private var currElevator: Double = 0.0
-
     private var lastAileron: Double = 0.0
     private var lastThrottle: Double = 0.0
     private var lastRudder: Double = 0.0
     private var lastElevator: Double = 0.0
-
     private var shouldFetchImage = false;
     private var url: String? = null
     private var image: ImageView? = null
-
     private var api: Api? = null
 
+    // Initialize the variables and execute the command and the screenshot functions
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
+        // Bind the activity with the control screen view
         setContentView(R.layout.control_screen)
+        // Get the Url from the connect activity
         url = intent.getStringExtra("Url")
-        val dispatcher: Dispatcher = Dispatcher()
-        dispatcher.maxRequests = 1
-        val okHttpClient = OkHttpClient.Builder()
-                .dispatcher(dispatcher)
-                .readTimeout(10, TimeUnit.SECONDS)
-                .connectTimeout(10, TimeUnit.SECONDS)
-                .build()
-        val gson = GsonBuilder()
-                .setLenient()
-                .create()
-        val retrofit = Retrofit.Builder()
-                .baseUrl(url.toString())
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .client(okHttpClient)
-                .build()
-        api = retrofit.create(Api::class.java)
-
-        image = findViewById<ImageView>(R.id.imageView)
-        image?.setImageBitmap(bitmapScreenShot)
+        // Send the first screenshot request
+        firstScreenShotRequest()
+        // Get the joystick from the control screen view
         val joystick = findViewById<JoystickView>(R.id.joystickView)
+        // Initialize the text of the four values to "0"
         findViewById<TextView>(R.id.aileronValue).text = "0"
         findViewById<TextView>(R.id.elevatorValue).text = "0"
         findViewById<TextView>(R.id.throttleValue).text = "0"
         findViewById<TextView>(R.id.rudderValue).text = "0"
+        // Execute the functions of the screenshot, the joystick and the seek bars
         sendCommandFromJoystick(joystick)
         sendCommandFromSBThrottle()
         sendCommandFromSBRudder()
         screenShotThread()
     }
 
+    // Send the first request of getting a screenshot
+    private fun firstScreenShotRequest() {
+        val dispatcher: Dispatcher = Dispatcher()
+        dispatcher.maxRequests = 1
+        val okHttpClient = OkHttpClient.Builder()
+            .dispatcher(dispatcher)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .build()
+        val gson = GsonBuilder()
+            .setLenient()
+            .create()
+        val retrofit = Retrofit.Builder()
+            .baseUrl(url.toString())
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .client(okHttpClient)
+            .build()
+        api = retrofit.create(Api::class.java)
+        image = findViewById<ImageView>(R.id.imageView)
+        image?.setImageBitmap(bitmapScreenShot)
+    }
+
+    // Save the values of the fields when the screen rotates
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putDouble("cAileron", currAileron)
@@ -92,6 +99,7 @@ class ControlActivity : AppCompatActivity() {
         outState.putDouble("lRudder", lastRudder)
     }
 
+    // Restore the values after the screen rotated
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         currAileron = savedInstanceState.getDouble("cAileron")
@@ -109,57 +117,63 @@ class ControlActivity : AppCompatActivity() {
         shouldFetchImage = false
     }
 
-    //visible
+    // Execute when the activity is visible
     override fun onStart() {
         super.onStart()
         shouldFetchImage = true;
     }
 
-    // no longer visible
+    // Execute when the activity is no longer visible
     override fun onStop() {
         super.onStop()
         shouldFetchImage = false
     }
 
-    // returns to this activity
+    // Execute when the user returns to this activity
     override fun onResume() {
         super.onResume()
         shouldFetchImage = true;
     }
 
+    // Execute when another activity comes into the foreground
     override fun onPause() {
         super.onPause()
         shouldFetchImage = false
     }
 
+    // Send a post command with the current values
     fun sendCommand() {
+        // Creates the json string
         val jsonToSend: String = "{\"aileron\": $currAileron,\n \"rudder\": $currRudder, \n " +
                 "\"elevator\": $currElevator, \n \"throttle\": $currThrottle\n}"
 
         val requestBody: RequestBody =
             RequestBody.create(MediaType.parse("application/json"), jsonToSend)
 
-        val resBody = api?.postCommand(requestBody)?.enqueue(object : Callback<ResponseBody> {
+        api?.postCommand(requestBody)?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                // Check if the request failed
                 if (response.code() != 200) {
-                    Toast.makeText(
-                        applicationContext,
-                        "Failed to send command. Please go back and try to reconnect",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    showErrorMessage("Failed to send command")
                 }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                Toast.makeText(
-                    applicationContext,
-                    "Connection with server failed. Please go back and try to reconnect",
-                    Toast.LENGTH_SHORT
-                ).show()
+                showErrorMessage("Connection with server failed")
             }
         })
     }
 
+    // Create a toast error message
+    private fun showErrorMessage(messageToAdd: String) {
+        Toast.makeText(
+            applicationContext,
+            "$messageToAdd. Please go back and try to reconnect",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    // Send a post command when the throttle seek bar changes
     private fun sendCommandFromSBThrottle() {
         val throttleSeekBar = findViewById<VerticalSeekBar>(R.id.seekBarThrottle)
         throttleSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -168,26 +182,23 @@ class ControlActivity : AppCompatActivity() {
                 if (lastThrottle == 0.0) {
                     findViewById<TextView>(R.id.throttleValue).text = "0"
                 } else {
-                    val roundThrottle: Double = String.format("%.2f", lastThrottle).toDouble()
-                    findViewById<TextView>(R.id.throttleValue).text = roundThrottle.toString()
+                    lastThrottle = String.format("%.2f", lastThrottle).toDouble()
+                    findViewById<TextView>(R.id.throttleValue).text = lastThrottle.toString()
                 }
-                val throttleChange = abs(lastThrottle - currThrottle)
-                if (throttleChange > 0.01) {
+                // Check whether the Throttle value has changed by more than 1% of its range
+                if (checkIfPassOnePercent("Throttle", lastThrottle, currThrottle)) {
                     currThrottle = lastThrottle
                     sendCommand()
                 }
             }
 
-            override fun onStartTrackingTouch(seekBar: SeekBar) {
-                // Do something
-            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 
-            override fun onStopTrackingTouch(seekBar: SeekBar) {
-                // Do something
-            }
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
     }
 
+    // Send a post command when the rudder seek bar changes
     private fun sendCommandFromSBRudder() {
         val rudderSeekBar = findViewById<SeekBar>(R.id.seekBarRudder)
         rudderSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -196,64 +207,69 @@ class ControlActivity : AppCompatActivity() {
                 if (lastRudder == 0.0) {
                     findViewById<TextView>(R.id.rudderValue).text = "0"
                 } else {
-                    val roundRudder: Double = String.format("%.2f", lastRudder).toDouble()
-                    findViewById<TextView>(R.id.rudderValue).text = roundRudder.toString()
+                    lastRudder = String.format("%.2f", lastRudder).toDouble()
+                    findViewById<TextView>(R.id.rudderValue).text = lastRudder.toString()
                 }
 
-                val rudderChange = abs(lastRudder - currRudder)
-                if (rudderChange > 0.02) {
+                // Check whether the Rudder value has changed by more than 1% of its range
+                if (checkIfPassOnePercent("Rudder", lastRudder, currRudder)) {
                     currRudder = lastRudder
                     sendCommand()
                 }
             }
 
-            override fun onStartTrackingTouch(seekBar: SeekBar) {
-                // Do something
-            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 
-            override fun onStopTrackingTouch(seekBar: SeekBar) {
-                // Do something
-            }
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
     }
 
+    // Send a post command when the joystick moves
     private fun sendCommandFromJoystick(joystick: JoystickView) {
         joystick.setOnMoveListener { angle, strength ->
-            var isValueChanged = false
-
             lastElevator = sin(toRadians(angle.toDouble())) * (strength.toDouble() / 100)
             lastAileron = cos(toRadians(angle.toDouble())) * (strength.toDouble() / 100)
             if (lastAileron == 0.0) {
                 findViewById<TextView>(R.id.aileronValue).text = "0"
             } else {
-                val roundAileron: Double = String.format("%.2f", lastAileron).toDouble()
-                findViewById<TextView>(R.id.aileronValue).text = roundAileron.toString()
+                lastAileron = String.format("%.2f", lastAileron).toDouble()
+                findViewById<TextView>(R.id.aileronValue).text = lastAileron.toString()
             }
-
             if (lastElevator == 0.0) {
                 findViewById<TextView>(R.id.elevatorValue).text = "0"
             } else {
-                val roundElevator: Double = String.format("%.2f", lastElevator).toDouble()
-                findViewById<TextView>(R.id.elevatorValue).text = roundElevator.toString()
+                lastElevator = String.format("%.2f", lastElevator).toDouble()
+                findViewById<TextView>(R.id.elevatorValue).text = lastElevator.toString()
             }
-
-            val elevatorChange = abs(lastElevator - currElevator)
-            val aileronChange = abs(lastAileron - currAileron)
-            if (elevatorChange > 0.02) {
+            // Check whether the Elevator value has changed by more than 1% of its range
+            if (checkIfPassOnePercent("Elevator", lastElevator, currElevator)) {
                 currElevator = lastElevator;
-                isValueChanged = true
+                sendCommand()
             }
-            if (aileronChange > 0.02) {
+            // Check whether the Aileron value has changed by more than 1% of its range
+            if (checkIfPassOnePercent("Aileron", lastAileron, currAileron)) {
                 currAileron = lastAileron
-                isValueChanged = true
-            }
-
-            if (isValueChanged) {
                 sendCommand()
             }
         }
     }
 
+    // Check whether the parameter has changed by more than 1% of its range
+    private fun checkIfPassOnePercent(paramName: String, lastValue: Double, currValue: Double):
+            Boolean {
+        val change = abs(lastValue - currValue)
+        val onePercent = if (paramName.compareTo("Throttle") == 0) {
+            0.01
+        } else {
+            0.02
+        }
+        if (change > onePercent) {
+            return true
+        }
+        return false
+    }
+
+    // Send the screen shot request every 500 milliseconds
     private fun screenShotThread() {
         CoroutineScope(IO).launch {
             while (!isDestroyed) {
@@ -266,35 +282,27 @@ class ControlActivity : AppCompatActivity() {
         }
     }
 
+    // Create screen shot request
     private fun getScreenShot() {
-
         api?.getImg()?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 val responseBytes = response.body()?.byteStream()
                 if ((response.code() != 200) || (responseBytes == null)) {
-                    Toast.makeText(
-                        applicationContext,
-                        "Failed to get screenshot. Please go back and try to reconnect",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    showErrorMessage("Failed to get screenshot")
                 } else {
                     val imageBm = BitmapFactory.decodeStream(responseBytes)
 
-                    // close stream after decoding
+                    // Close stream after decoding
                     responseBytes.close()
                     runOnUiThread {
-                        image = findViewById<ImageView>(R.id.imageView)
+                        image = findViewById(R.id.imageView)
                         image?.setImageBitmap(imageBm)
                     }
                 }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                Toast.makeText(
-                    applicationContext,
-                    "Connection with server failed. Please go back and try to reconnect",
-                    Toast.LENGTH_SHORT
-                ).show()
+                showErrorMessage("Connection with server failed")
             }
         })
     }

@@ -54,11 +54,15 @@
 
         </LinearLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/url_recyclerView"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="571dp"
-            android:layout_margin="5dp" />
+            android:layout_height="match_parent">
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/url_recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="571dp"
+                android:layout_margin="5dp" />
+        </ScrollView>
     </LinearLayout>
 </layout>
